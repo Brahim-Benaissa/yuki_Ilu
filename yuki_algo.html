@@ -15,14 +15,22 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);
 #scene{position:fixed;left:0;top:0;right:0;bottom:0}
 #scene canvas{display:block;touch-action:none}
 
-/* ---------- RUN button + iteration slider (top center) ---------- */
+/* ---------- RUN + fullscreen buttons, iteration slider (top center) ---------- */
 #runbar{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:6;
   display:flex;flex-direction:column;align-items:center;gap:6px}
+#btnrow{display:flex;gap:8px;align-items:stretch}
 #rerun{min-width:148px;background:rgba(255,167,38,.14);border:1px solid rgba(255,167,38,.45);color:#ffd9a0;
   border-radius:999px;padding:7px 18px;font-size:12.5px;letter-spacing:.4px;cursor:pointer;
   font-family:inherit;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   box-shadow:0 6px 22px rgba(0,0,0,.35)}
 #rerun:hover{background:rgba(255,167,38,.3);border-color:rgba(255,167,38,.85)}
+#fsBtn{background:var(--panel);border:1px solid var(--line);color:#b9c3da;border-radius:999px;
+  min-width:38px;padding:7px 13px;line-height:1;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:0 6px 22px rgba(0,0,0,.35)}
+#fsBtn:hover{background:#25304f;border-color:#41508a;color:#dfe6f5}
+#fsBtn svg{display:block}
 #itbar{width:352px;display:flex;align-items:center;gap:10px;
   background:var(--panel);border:1px solid var(--line);border-radius:10px;
   padding:5px 12px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
@@ -118,6 +126,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
   #legend{right:8px;top:8px;bottom:auto;width:auto;max-width:46vw;font-size:9.5px;line-height:1.35}
   #runbar{top:10px;left:12px;transform:none;align-items:flex-start;gap:5px}
   #rerun{padding:6px 13px;font-size:11.5px;min-width:120px}
+  #fsBtn{padding:6px 10px;min-width:34px}
   #itbar{width:min(58vw,300px);gap:7px;padding:4px 10px}
   #itbar label{font-size:9px}
   #hint{display:none}
@@ -128,7 +137,15 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
 <div id="scene"></div>
 
 <div id="runbar">
-  <button id="rerun" title="new random run · resets the view">New Run</button>
+  <div id="btnrow">
+    <button id="rerun" title="new random run · resets the view">RUN</button>
+    <button id="fsBtn" title="toggle full screen">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor"
+           stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 4V1h3M8 1h3v3M11 8v3H8M4 11H1V8"/>
+      </svg>
+    </button>
+  </div>
   <div id="itbar">
     <label for="iters">Run &amp; View Iterations</label>
     <div class="slidewrap">
@@ -796,6 +813,29 @@ document.getElementById('rerun').addEventListener('click', function(){
   cur.radius = RADIUS*1.25;          /* replay the short intro glide */
   runSim();
 });
+
+/* ============ fullscreen toggle (button next to RUN) ============ */
+var fsBtn = document.getElementById('fsBtn');
+var FS_ICON_ON  = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4V1h3M8 1h3v3M11 8v3H8M4 11H1V8"/></svg>';
+var FS_ICON_OFF = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1v3H1M8 1v3h3M8 11V8h3M4 11V8H1"/></svg>';
+function fsSyncIcon(){
+  var on = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  fsBtn.innerHTML = on ? FS_ICON_OFF : FS_ICON_ON;
+  fsBtn.title = on ? 'exit full screen' : 'toggle full screen';
+}
+fsBtn.addEventListener('click', function(){
+  var el = document.documentElement;
+  var req  = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+  var exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+  if(!document.fullscreenElement && !document.webkitFullscreenElement){
+    if(req) req.call(el);            /* enter fullscreen */
+  }else{
+    if(exit) exit.call(document);    /* leave fullscreen */
+  }
+});
+document.addEventListener('fullscreenchange', fsSyncIcon);
+document.addEventListener('webkitfullscreenchange', fsSyncIcon);
+fsSyncIcon();
 
 /* clicking an exploration level: new random run with that level,
    restart from iteration 1, glide back to the default view */
