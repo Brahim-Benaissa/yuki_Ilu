@@ -3,7 +3,48 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>YUKI algorithm : 3D illustration</title>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-104TPV326N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-104TPV326N');
+</script>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-TRGMTJZG');</script>
+<!-- End Google Tag Manager -->
+
+<title>YUKI Optimization Algorithm, Interactive 3D Search Visualization</title>
+
+<!-- ==================== SEO ==================== -->
+<meta name="description" content="The YUKI optimization algorithm live in 3D: pick the Ackley, Sphere, or Schwefel objective, tune exploration vs. exploitation, and follow every iteration with a live progress report." />
+<meta name="keywords" content="YUKI algorithm, optimization algorithm, metaheuristic, search algorithm, global optimization, population-based optimization, exploration exploitation, Ackley function, Sphere function, Schwefel function, benchmark test functions, convergence, iteration history, 3D landscape visualization, interactive optimization, three.js" />
+<meta name="theme-color" content="#0a0d18" />
+
+<!-- Set when the page has its final URL:
+<link rel="canonical" href="https://YOUR-DOMAIN/yuki-3d.html" />
+-->
+
+<!-- ==================== Open Graph (social previews) ==================== -->
+<meta property="og:title" content="YUKI Optimization Algorithm, Interactive 3D Search Visualization" />
+<meta property="og:description" content="Run the YUKI optimizer live on 3D Ackley, Sphere, and Schwefel landscapes, 30 agents, shrinking local search boxes, a best-so-far trajectory, and a clickable per-iteration table." />
+<meta property="og:type" content="website" />
+<!-- Add a 1200×630 thumbnail when available:
+<meta property="og:image" content="https://YOUR-DOMAIN/img/yuki-3d.png" />
+-->
+
+<!-- ==================== Twitter Card ==================== -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="YUKI Optimization Algorithm, 3D Search Visualizer" />
+<meta name="twitter:description" content="Interactive 3D visualization of the YUKI optimization algorithm: live runs, tunable exploration, per-iteration progress." />
+<!-- <meta name="twitter:image" content="https://YOUR-DOMAIN/img/yuki-3d.png" /> -->
+
 <style>
 :root{
   --bg:#0a0d18; --panel:rgba(15,19,33,.92); --line:rgba(255,255,255,.09);
@@ -47,6 +88,24 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);
 .ticks{position:absolute;left:9px;right:9px;top:50%;margin-top:-2px;height:4px;pointer-events:none}
 .ticks i{position:absolute;top:0;width:2px;height:4px;background:#7a89b5;border-radius:1px;
   transform:translateX(-50%)}
+
+/* ---------- share button (top right) ---------- */
+#shareButton{position:fixed;top:12px;right:12px;z-index:6;
+  background:var(--panel);border:1px solid var(--line);color:#b9c3da;border-radius:999px;
+  padding:7px 16px;font-size:11.5px;letter-spacing:.4px;cursor:pointer;font-family:inherit;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:0 6px 22px rgba(0,0,0,.35);
+  transition:background .2s,border-color .2s,color .2s}
+#shareButton:hover{background:#25304f;border-color:#41508a;color:#dfe6f5}
+
+/* ---------- toast (share confirmation) ---------- */
+#toast{visibility:hidden;min-width:220px;margin-left:-110px;
+  background:var(--panel);border:1px solid var(--line);color:var(--txt);
+  text-align:center;border-radius:10px;padding:10px 16px;
+  position:fixed;z-index:999;left:50%;bottom:30px;
+  font-size:12px;opacity:0;transition:opacity .5s ease,transform .5s ease;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  box-shadow:0 14px 44px rgba(0,0,0,.5)}
 
 /* ---------- control panel: translucent, appears on hover ---------- */
 #panel{position:fixed;top:12px;left:12px;width:292px;max-height:calc(100vh - 24px);
@@ -119,21 +178,24 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
 .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;padding-top:7px;border-top:1px solid var(--line)}
 .chip{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:9px;color:#0a0d18;font-weight:700}
-#hint{position:fixed;top:12px;right:12px;font-size:10px;color:#7d88a5;background:rgba(10,13,24,.65);
-  padding:5px 10px;border-radius:8px;border:1px solid var(--line);z-index:4}
 @media (max-width:820px){
   #panel{left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:44vh;padding:10px 12px 8px}
-  #legend{right:8px;top:8px;bottom:auto;width:auto;max-width:46vw;font-size:9.5px;line-height:1.35}
+  #legend{right:8px;top:48px;bottom:auto;width:auto;max-width:46vw;font-size:9.5px;line-height:1.35}
   #runbar{top:10px;left:12px;transform:none;align-items:flex-start;gap:5px}
   #rerun{padding:6px 13px;font-size:11.5px;min-width:120px}
   #fsBtn{padding:6px 10px;min-width:34px}
   #itbar{width:min(58vw,300px);gap:7px;padding:4px 10px}
   #itbar label{font-size:9px}
-  #hint{display:none}
+  #shareButton{top:8px;right:8px;padding:6px 13px;font-size:10.5px}
 }
 </style>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TRGMTJZG"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
 <div id="scene"></div>
 
 <div id="runbar">
@@ -155,6 +217,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
     <output id="itOut">1</output>
   </div>
 </div>
+
+<button id="shareButton" type="button" aria-label="Copy page link" title="Copy page link">Share</button>
 
 <aside id="panel">
   <h1>YUKI algorithm : 3D illustration</h1>
@@ -209,7 +273,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
   <div class="chips" id="chips"></div>
 </div>
 
-<div id="hint">drag · spin&nbsp;&nbsp;|&nbsp;&nbsp;table row · jump to iteration&nbsp;&nbsp;|&nbsp;&nbsp;RUN or exploration level · new run + default view</div>
+<div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script>
@@ -219,13 +283,13 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
 /* ============ graceful degradation ============ */
 if(!window.THREE){
   document.getElementById('scene').innerHTML =
-    '<div style="color:#ffb0a0;padding:24px;font:14px sans-serif">Could not load three.js from the CDN — check your connection and reload.</div>';
+    '<div style="color:#ffb0a0;padding:24px;font:14px sans-serif">Could not load three.js from the CDN, check your connection and reload.</div>';
   return;
 }
 
 /* ============ constants & the three objective functions (all on [−100, 100]³) ============ */
 var POP = 30;      /* fixed population size */
-var MAXIT = 10;    /* slider range — also fixes the iteration color palette */
+var MAXIT = 10;    /* slider range, also fixes the iteration color palette */
 var FUNCS = {
   ackley: {
     name:'Ackley', lb:-100, ub:100, target:[0,0,0], res:1024,
@@ -266,11 +330,11 @@ var FN='ackley', LB, UB, W, TARGET;
 function applyFn(key){ FN=key; var F=FUNCS[key]; LB=F.lb; UB=F.ub; W=UB-LB; TARGET=F.target; }
 applyFn('ackley');
 
-/* ============ deterministic RNG — same "luck" while tweaking parameters ============ */
+/* ============ deterministic RNG, same "luck" while tweaking parameters ============ */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);
   t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 
-/* ============ the algorithm — exploit move stays inside the local search box ============ */
+/* ============ the algorithm, exploit move stays inside the local search box ============ */
 function simulate(expVal, maxIter, rnd){
   var F = FUNCS[FN];
   var recs = [];
@@ -344,7 +408,7 @@ scene.add(new THREE.AmbientLight(0xffffff, 0.55));
 var dl = new THREE.DirectionalLight(0xffffff, 0.85); dl.position.set(1,2,1); scene.add(dl);
 
 /* --- manual orbit ONLY: drag spins the box around its own center axis. No zoom. --- */
-/* default view: mostly face-on (a side of the box, not the corner) —
+/* default view: mostly face-on (a side of the box, not the corner),
    ~17° azimuth + ~18° elevation keeps a hint of 3D depth */
 var VIEW0 = {theta:0.3, phi:Math.PI/2 - 0.32};
 var RADIUS = 2.15*W;
@@ -440,7 +504,7 @@ function makeStar(colorHex, r){
   }
   return g;
 }
-/* iteration palette — normalized over the FULL slider range (1..10), so every
+/* iteration palette, normalized over the FULL slider range (1..10), so every
    iteration number keeps its own color no matter how long the current run is */
 function iterColor(i){
   var t = (i-1)/(MAXIT-1);
@@ -542,7 +606,7 @@ function buildLandscape(){
   ];
 
   /* value → color-position transform.
-     Ackley: piecewise — the deep funnel [0, 20] gets the bright quarter of the ramp,
+     Ackley: piecewise, the deep funnel [0, 20] gets the bright quarter of the ramp,
      the fine ripple band [20, 22] gets the remaining three quarters. Without this,
      ~98% of the area sits in a 2-unit band at the top of a 22-unit range, so almost
      the whole box renders as the same dark blue. Sphere / Schwefel: robust
@@ -658,7 +722,7 @@ function rebuild(){
       }
     }
 
-    /* --- best solution of this iteration (orange star) — kept for every iteration --- */
+    /* --- best solution of this iteration (orange star), kept for every iteration --- */
     var st = makeStar(0xffa726, isK ? 0.0115*W : (0.0078+0.0025*f)*W);
     st.position.set(rec.bestPos[0],rec.bestPos[1],rec.bestPos[2]); simGroup.add(st);
     if(isK) focusStar = st;
@@ -804,7 +868,7 @@ table.addEventListener('click', function(e){
   setIteration(+tr.dataset.k);
 });
 
-/* RUN — new random run, restart from iteration 1, glide back to the default view */
+/* RUN, new random run, restart from iteration 1, glide back to the default view */
 document.getElementById('rerun').addEventListener('click', function(){
   seed = (Math.random()*2147483647)|0;
   iters.value = 1;
@@ -905,7 +969,7 @@ function tick(){
   requestAnimationFrame(tick);
   var now = performance.now(), dt = Math.min(50, now-prev); prev = now;
 
-  /* smoothed orbit — camera always spins around the box's center axis;
+  /* smoothed orbit, camera always spins around the box's center axis;
      the box sits dead-center on screen */
   cur.theta  += (des.theta -cur.theta )*0.18;
   cur.phi    += (des.phi   -cur.phi   )*0.18;
@@ -928,6 +992,39 @@ function tick(){
   renderer.render(scene, camera);
 }
 tick();
+})();
+</script>
+
+<script>
+/* ============================================================
+   SHARE BUTTON + TOAST (same behavior as the companion pages)
+   ============================================================ */
+(function(){
+'use strict';
+var btn=document.getElementById('shareButton');
+var toast=document.getElementById('toast');
+var tT=null;
+function showToast(msg){
+  toast.textContent=msg;
+  toast.style.visibility='visible';
+  toast.style.opacity='1';
+  toast.style.transform='translateY(0)';
+  clearTimeout(tT);
+  tT=setTimeout(function(){
+    toast.style.opacity='0';
+    toast.style.transform='translateY(20px)';
+    setTimeout(function(){toast.style.visibility='hidden';},500);
+  },3000);
+}
+btn.addEventListener('click',function(){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(window.location.href)
+      .then(function(){showToast('Link copied to clipboard!');})
+      .catch(function(){showToast('Failed to copy the link.');});
+  }else{
+    showToast('Failed to copy the link.');
+  }
+});
 })();
 </script>
 </body>
